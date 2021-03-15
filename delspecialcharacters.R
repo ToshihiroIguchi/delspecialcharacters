@@ -1,6 +1,40 @@
 #特殊文字を削除
 #ただし、漢字は直接使用しない
 
+
+#xのベクトルで、hexではじまるunicodeをvecの文字に変換
+conv.hex.chr <- function(x, hex, vec){
+  
+  #https://qiita.com/hoxo_m/items/82ad2493f73d20648b1c
+  #十六進数を数値に変換
+  first.hex.num <- strtoi(hex, base = 16)
+  
+  #数値のベクトルを作成
+  hex.num <- first.hex.num + c(0 : (length(vec) - 1))
+  
+  #16進数で再生
+  hex.vec <- as.character(as.hexmode(hex.num))
+  
+  #unicodeなので先頭に付け足す
+  hex.vec <- paste0("0x", hex.vec)
+  
+  
+  print(hex.vec)
+  
+  #戻り値に初期値を入れておく
+  ret <- x
+  
+  #unicodeで順に変換していく
+  for(i in 1:length(vec)){
+    #https://stackoverflow.com/questions/66639163/convert-from-hexadecimal-to-unicode-in-r-language/66639415#66639415
+    ret <- gsub(pattern = intToUtf8(hex.vec[i]) , replacement = vec[i], x = ret)
+  }
+  
+  #戻り値
+  return(ret)
+  
+}
+
 #caretのformulaで特殊文字を入力すると不具合が生じるので削除する関数
 delspecialcharacters <- function(vec){
   
@@ -24,6 +58,21 @@ delspecialcharacters <- function(vec){
   ret <- gsub2(ret, "+")
   ret <- gsub2(ret, "-")
   
+  #全角数字を変換
+  ret <- conv.hex.chr(ret, hex = "FF10", c(0:9))
+  
+  #丸の中の数字を変換
+  ret <- conv.hex.chr(ret, hex = "2460", c(1:20))
+  
+  #上付き数字を変換
+  #https://unicode-table.com/jp/sets/superscript-and-subscript-letters/
+  ret <- conv.hex.chr(ret, hex = "2070", c(0:9))
+  
+  #添え字の数字を変換
+  #https://unicode-table.com/jp/sets/superscript-and-subscript-letters/
+  ret <- conv.hex.chr(ret, hex = "2080", c(0:9))
+
+
   #ギリシャ文字を変換
   ret <- gsub2(ret, "\u03B1", "a")
   ret <- gsub2(ret, "\u03B2", "beta")
